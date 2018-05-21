@@ -29,8 +29,21 @@ router.post('/', (req, res, next) => {
 
 router.post('/collection', (req, res, next) => {
   const collection = req.body
-  console.log(collection)
-  res.status(201).json(collection)
+  const levels = {}
+  
+  collection.levels.forEach( (level, index) => {
+    level.lessons.forEach( (lesson, lessonI) => {
+      console.log(`Lesson ${lessonI} of level ${index} ---------` + lesson)
+      lesson.tasks.forEach( (task, taskI) => {
+        console.log(`Task ${taskI} of lesson ${lessonI} of level ${index} ` + task)
+        console.log(typeof(task))
+      });
+    });
+  });
+
+  res.status(201).json({
+    message: 'ok' 
+  })
 })
 
 router.post('/levels/:language_id', (req, res, next) => {
@@ -208,6 +221,22 @@ router.delete('/:language_id', (req, res, next) => {
     res.status(201).json({
       message: 'Language deleted!'
     })
+  })
+})
+
+router.delete('/levels/:level_id', (req, res, next) => {
+  Language.update({}, { $pull : { 'levels': { '_id' : mongoose.Types.ObjectId(req.params.level_id)} }}, (err, succes) => {
+    if (err) {
+      console.log(error)
+      res.status(500).json({
+        error: error.message
+      })
+    } else {
+      console.log(succes)
+      res.status(201).json({
+        message: 'Level deleted!'
+      })
+    }
   })
 })
 
