@@ -6,9 +6,16 @@ const bcrypt = require('bcrypt')
 const User = require('../models/user')
 
 router.get('/', (req, res, next) => {
-  res.status(200).json({
-    message: 'All ok!'
-  })
+  User.find().lean()
+    .exec( (err, users) => {
+      if (!err) {
+        res.status(200).json(users)
+      }else {
+        res.status(500).json({
+          error: err.message
+        })
+      }
+    })
 })
 
 router.post('/', (req, res, next) => {
