@@ -240,6 +240,45 @@ router.delete('/levels/:level_id', (req, res, next) => {
   })
 })
 
+router.delete('/lessons/:lesson_id', (req, res, next) => {
+  Language.update({}, { $pull : { 'levels.0.lesson' : { '_id' : mongoose.Types.ObjectId(req.params.lesson_id) } } }, (err, succes) => {
+    if (err) {
+      console.log(error)
+      res.status(500).json({
+        error: error.message
+      })
+    } else {
+      console.log(succes)
+      res.status(201).json({
+        message: 'Lesson deleted!'
+      })
+    }
+  })
+})
+
 /* */
+
+/* UPDATE */
+router.put('/lessons/:level_id/:lesson_id', (req, res, next) => {
+  const updateRequest = {}
+  for (key in req.body) {
+    let keyString = 'levels.$[i].lessons.$[j].' + key
+    updateRequest[keyString] = req.body[key]
+  }
+  Language.update({}, { $set: updateRequest }, { arrayFilters: [{ 'i._id': mongoose.Types.ObjectId(req.params.level_id) }, { 'j._id': mongoose.Types.ObjectId(req.params.lesson_id) }], upsert: true }, (error, succes) => {
+    if (error) {
+      console.log(error)
+      res.status(500).json({
+        error: error.message
+      })
+    } else {
+      console.log(succes)
+      res.status(201).json({
+        message: 'Lesson updated!',
+        field: req.body
+      })
+    }
+  })
+})
 
 module.exports = router
