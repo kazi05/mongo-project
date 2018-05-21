@@ -30,19 +30,19 @@ router.post('/', (req, res, next) => {
 router.post('/collection', (req, res, next) => {
   const collection = req.body
   const levels = {}
-  
-  collection.levels.forEach( (level, index) => {
-    level.lessons.forEach( (lesson, lessonI) => {
+
+  collection.levels.forEach((level, index) => {
+    level.lessons.forEach((lesson, lessonI) => {
       console.log(`Lesson ${lessonI} of level ${index} ---------` + lesson)
-      lesson.tasks.forEach( (task, taskI) => {
+      lesson.tasks.forEach((task, taskI) => {
         console.log(`Task ${taskI} of lesson ${lessonI} of level ${index} ` + task)
-        console.log(typeof(task))
+        console.log(typeof (task))
       });
     });
   });
 
   res.status(201).json({
-    message: 'ok' 
+    message: 'ok'
   })
 })
 
@@ -171,16 +171,39 @@ router.get('/levels/:language_id', (req, res, next) => {
     })
 })
 
+router.get('/level/:level_id', (req, res, next) => {
+  Language.findOne({ 'levels._id': req.params.level_id }, { 'levels': 1, '_id': 0 }).lean()
+    .then(level => {
+      if (level) {
+        level.levels.map(arr => {
+          if (arr._id == req.params.level_id) {
+            res.status(200).json(arr)
+          }
+        })
+      } else {
+        res.status(404).json({
+          message: 'Level not found :('
+        })
+      }
+    })
+    .catch(err => {
+      console.log(err.message)
+      res.status(500).json({
+        error: err.message
+      })
+    })
+})
+
 router.get('/lessons/:level_id', (req, res, next) => {
   Language.aggregate([
-    { $match: {"levels._id": mongoose.Types.ObjectId(req.params.level_id)}}, 
-    { $project: {lessons: "$levels.lessons"}}
+    { $match: { "levels._id": mongoose.Types.ObjectId(req.params.level_id) } },
+    { $project: { lessons: "$levels.lessons" } }
   ], (err, result) => {
     if (!err) {
       res.status(200).json({
         lessons: result[0].lessons[0]
       })
-    }else {
+    } else {
       res.status(500).json({
         error: err.message
       })
@@ -190,14 +213,14 @@ router.get('/lessons/:level_id', (req, res, next) => {
 
 router.get('/tasks/:lesson_id', (req, res, next) => {
   Language.aggregate([
-    { $match: {"levels.lesson._id": mongoose.Types.ObjectId(req.params.lesson_id)}}, 
-    { $project: {tasks: "$levels.lessons"}}
+    { $match: { "levels.lesson._id": mongoose.Types.ObjectId(req.params.lesson_id) } },
+    { $project: { tasks: "$levels.lessons" } }
   ], (err, result) => {
     if (!err) {
       res.status(200).json({
         tasks: result
       })
-    }else {
+    } else {
       res.status(500).json({
         error: err.message
       })
@@ -217,7 +240,7 @@ router.delete('/', (req, res) => {
 })
 
 router.delete('/:language_id', (req, res, next) => {
-  Language.remove({ _id: req.params.language_id}).then(result => {
+  Language.remove({ _id: req.params.language_id }).then(result => {
     res.status(201).json({
       message: 'Language deleted!'
     })
@@ -225,7 +248,7 @@ router.delete('/:language_id', (req, res, next) => {
 })
 
 router.delete('/levels/:level_id', (req, res, next) => {
-  Language.update({}, { $pull : { 'levels': { '_id' : mongoose.Types.ObjectId(req.params.level_id)} }}, (err, succes) => {
+  Language.update({}, { $pull: { 'levels': { '_id': mongoose.Types.ObjectId(req.params.level_id) } } }, (err, succes) => {
     if (err) {
       console.log(error)
       res.status(500).json({
@@ -241,7 +264,7 @@ router.delete('/levels/:level_id', (req, res, next) => {
 })
 
 router.delete('/lessons/:lesson_id', (req, res, next) => {
-  Language.update({}, { $pull : { 'levels.0.lesson' : { '_id' : mongoose.Types.ObjectId(req.params.lesson_id) } } }, (err, succes) => {
+  Language.update({}, { $pull: { 'levels.0.lesson': { '_id': mongoose.Types.ObjectId(req.params.lesson_id) } } }, (err, succes) => {
     if (err) {
       console.log(error)
       res.status(500).json({
@@ -309,7 +332,7 @@ router.put('/tasks/:level_id/:lesson_id/:task_id', (req, res, next) => {
     let keyString = 'levels.$[i].lessons.$[j].tasks.$[g].' + key
     updateRequest[keyString] = req.body[key]
   }
-  Language.update({}, { $set: updateRequest }, { arrayFilters: [{ 'i._id': mongoose.Types.ObjectId(req.params.level_id) }, { 'j._id': mongoose.Types.ObjectId(req.params.lesson_id) } , { 'g._id': mongoose.Types.ObjectId(req.params.task_id) }], upsert: true }, (error, succes) => {
+  Language.update({}, { $set: updateRequest }, { arrayFilters: [{ 'i._id': mongoose.Types.ObjectId(req.params.level_id) }, { 'j._id': mongoose.Types.ObjectId(req.params.lesson_id) }, { 'g._id': mongoose.Types.ObjectId(req.params.task_id) }], upsert: true }, (error, succes) => {
     if (error) {
       console.log(error)
       res.status(500).json({
