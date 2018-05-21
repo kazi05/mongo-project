@@ -27,6 +27,12 @@ router.post('/', (req, res, next) => {
     })
 })
 
+router.post('/collection', (req, res, next) => {
+  const collection = req.body
+  console.log(collection)
+  res.status(201).json(collection)
+})
+
 router.post('/levels/:language_id', (req, res, next) => {
   const level = {
     _id: mongoose.Types.ObjectId(),
@@ -196,5 +202,15 @@ router.delete('/', (req, res) => {
     })
   })
 })
+
+router.delete('/:language_id', (req, res, next) => {
+  Language.remove({ _id: req.params.language_id}).then(result => {
+    res.status(201).json({
+      message: 'Language deleted!'
+    })
+  })
+})
+
+/* */
 
 module.exports = router

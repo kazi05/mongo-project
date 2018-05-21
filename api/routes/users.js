@@ -18,6 +18,25 @@ router.get('/', (req, res, next) => {
     })
 })
 
+router.get('/:user_id', (req, res, next) => {
+  User.findOne({_id: req.params.user_id}).lean()
+    .exec( (err, user) => {
+      if (!err) {
+        if (user) {
+          res.status(200).json(user)
+        }else {
+          res.status(404).json({
+            message: 'User not found'
+          })
+        }
+      }else {
+        res.status(500).json({
+          error: err.message
+        })
+      }
+    })
+})
+
 router.post('/', (req, res, next) => {
   User.findOne({ email: req.body.email }).exec()
     .then(user => {
