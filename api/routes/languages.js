@@ -248,8 +248,8 @@ router.delete('/:language_id', (req, res, next) => {
 })
 
 router.delete('/levels/:level_id', (req, res, next) => {
-  Language.update({}, { $pull: { 'levels': { '_id': mongoose.Types.ObjectId(req.params.level_id) } } }, (err, succes) => {
-    if (err) {
+  Language.update({ 'levels._id': mongoose.Types.ObjectId(req.params.level_id) }, { $pull: { 'levels': { '_id': mongoose.Types.ObjectId(req.params.level_id) } } }, (error, succes) => {
+    if (error) {
       console.log(error)
       res.status(500).json({
         error: error.message
@@ -259,7 +259,7 @@ router.delete('/levels/:level_id', (req, res, next) => {
       res.status(201).json({
         message: 'Level deleted!'
       })
-    }
+    } 
   })
 })
 
