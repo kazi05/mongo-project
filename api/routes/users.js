@@ -94,4 +94,12 @@ router.delete('/', (req, res, next) => {
   })
 })
 
+router.delete('/:user_id', (req, res, next) => {
+  User.remove({ '_id': req.params.user_id}).then(resp => {
+    res.status(201).json({
+      message: 'User Cleared!'
+    })
+  })
+})
+
 module.exports = router
