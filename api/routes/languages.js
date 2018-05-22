@@ -211,21 +211,31 @@ router.get('/lessons/:level_id', (req, res, next) => {
   })
 })
 
-router.get('/tasks/:lesson_id', (req, res, next) => {
-  Language.aggregate([
-    { $match: { "levels.lesson._id": mongoose.Types.ObjectId(req.params.lesson_id) } },
-    { $project: { tasks: "$levels.lessons" } }
-  ], (err, result) => {
-    if (!err) {
-      res.status(200).json({
-        tasks: result
-      })
-    } else {
+router.get('/tasks/:level_id/:lesson_id', (req, res, next) => {
+  Language.findOne({ 'levels._id': req.params.level_id }, { 'levels': 1, '_id': 0 }).lean()
+    .then(level => {
+      if (level) {
+        level.levels.map(arr => {
+          if (arr._id == req.params.level_id) {
+            arr.lessons.map(less => {
+              if (less._id == req.params.lesson_id) {
+                res.status(200).json(less.tasks)
+              }
+            })
+          }
+        })
+      } else {
+        res.status(404).json({
+          message: 'Level not found :('
+        })
+      }
+    })
+    .catch(err => {
+      console.log(err.message)
       res.status(500).json({
         error: err.message
       })
-    }
-  })
+    })
 })
 
 /* */
